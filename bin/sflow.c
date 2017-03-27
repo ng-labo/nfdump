@@ -162,11 +162,11 @@
 #endif
 */
 
-#ifndef DEVEL
-#   define dbg_printf(...) /* printf(__VA_ARGS__) */
-#else
+//#ifndef DEVEL
+//#   define dbg_printf(...) /* printf(__VA_ARGS__) */
+//#else
 #   define dbg_printf(...) printf(__VA_ARGS__)
-#endif
+//#endif
 
 #define MAX_SFLOW_EXTENSIONS 8
 
@@ -516,8 +516,15 @@ static inline void readCountersSample_v2v4(SFSample *sample, FlowSource_t *fs);
 static inline void StoreSflowRecord(SFSample *sample, FlowSource_t *fs);
 
 #ifdef DEVEL
-static inline char *printTag(uint32_t tag, char *buf, int bufLen);
+static char *printTag(uint32_t tag, char *buf, int bufLen) {
+    snprintf(buf, bufLen, "%u:%u", (tag >> 12), (tag & 0x00000FFF));
+    return buf;
+} // End of printTag
+
+char buf[51];
 #endif
+        
+
 
 extern int verbose;
 
@@ -1408,17 +1415,9 @@ static inline uint32_t getAddress(SFSample *sample, SFLAddress *address) {
 } // End of getAddress
 
 static inline void skipTLVRecord(SFSample *sample, uint32_t tag, uint32_t len, char *description) {
-
-#ifdef DEVEL
-static inline char *printTag(uint32_t tag, char *buf, int bufLen) {
-	snprintf(buf, bufLen, "%u:%u", (tag >> 12), (tag & 0x00000FFF));
-	return buf;
-} // End of printTag
-
-char buf[51];
-#endif
-
-	dbg_printf("skipping unknown %s: 0x%x, %s len=%d\n", description, tag, printTag(tag, buf, 50), len);
+        static char buf[50];
+        char* ptag = printTag(tag, buf, 50);
+	dbg_printf("skipping unknown %s: 0x%x, %s len=%d\n", description, tag, ptag, len);
 	skipBytes(sample, len);
 } // End of skipTLVRecord
 
